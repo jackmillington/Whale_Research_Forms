@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Research Forms</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body data-app="landing">
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">WF</span>
+        <span class="brand-copy">
+          <strong>Research Forms</strong>
+          <span>Datasheet entry</span>
+        </span>
+      </a>
+      <div class="topbar-actions">
+        <div class="topbar-note">Select a form</div>
+        <div class="theme-switcher" role="group" aria-label="Color theme">
+          <button type="button" class="theme-switcher-button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" class="theme-switcher-button" data-theme-option="dark" aria-pressed="true">Dark</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="landing-layout landing-layout--compact">
+      <section class="forms-panel">
+        <div class="section-heading section-heading--compact">
+          <h1>Datasheets</h1>
+          <p>Choose a sheet to open.</p>
+        </div>
+        <div id="forms-grid" class="forms-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="assets/forms-config.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
