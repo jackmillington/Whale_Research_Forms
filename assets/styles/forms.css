@@ -1,0 +1,410 @@
+/* Form sections, controls, repeatables, and preview UI. */
+
+.form-section {
+  --inline-label-column: 170px;
+  padding: 20px;
+  border-radius: 18px;
+  background: var(--form-section-bg);
+  border: 1px solid var(--border);
+}
+
+.section-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  grid-column: span 6;
+  display: grid;
+  gap: 8px;
+}
+
+.field--inline {
+  grid-template-columns: var(--field-inline-label-column, var(--inline-label-column)) minmax(0, 1fr);
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 8px;
+}
+
+.field--stacked-inline {
+  grid-template-columns: 1fr;
+  row-gap: 12px;
+}
+
+.field--wide,
+.field-detail {
+  grid-column: span 12;
+}
+
+.field label,
+.detail-item label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 700;
+}
+
+.field--inline > label {
+  grid-column: 1;
+  align-self: center;
+  justify-content: flex-start;
+  white-space: normal;
+  line-height: 1.15;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+.field--inline > input,
+.field--inline > select,
+.field--inline > textarea,
+.field--inline > .gps-input-group,
+.field--inline > .repeatable-field-shell,
+.field--inline > .repeatable-token-field,
+.field--inline > .option-list,
+.field--inline > .stack-list,
+.field--inline > .button-link {
+  grid-column: 2;
+}
+
+.field--stacked-inline > label,
+.field--stacked-inline > input,
+.field--stacked-inline > select,
+.field--stacked-inline > textarea,
+.field--stacked-inline > .gps-input-group,
+.field--stacked-inline > .repeatable-field-shell,
+.field--stacked-inline > .repeatable-token-field,
+.field--stacked-inline > .option-list,
+.field--stacked-inline > .stack-list,
+.field--stacked-inline > .button-link {
+  grid-column: 1;
+}
+
+.field--stacked-inline > label {
+  white-space: normal;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--field-border);
+  border-radius: 14px;
+  background: var(--field-bg);
+  color: var(--text);
+  box-shadow: var(--field-shadow);
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--field-focus-border);
+  box-shadow: var(--field-focus-shadow);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--placeholder);
+}
+
+input[type="date"]:invalid,
+input[type="time"]:invalid {
+  color: var(--placeholder);
+}
+
+select:invalid {
+  color: var(--placeholder);
+}
+
+select option {
+  color: var(--text);
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.gps-input-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 920px;
+}
+
+.option-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.option-list-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: none;
+}
+
+.option-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--option-bg);
+  border: 1px solid var(--option-border);
+}
+
+.option-list .option-chip span {
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.option-list .option-chip,
+.option-list-inline .option-chip {
+  width: auto;
+  min-height: 0;
+}
+
+.option-list .option-chip {
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+}
+
+.stack-list,
+.detail-list {
+  display: grid;
+  gap: 12px;
+}
+
+.repeatable-field-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.repeatable-token-field {
+  width: 100%;
+}
+
+.repeatable-token-shell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 12px;
+  border: 1px solid var(--field-border);
+  border-radius: 14px;
+  background: var(--field-bg);
+  box-shadow: var(--field-shadow);
+}
+
+.repeatable-token-shell:focus-within {
+  border-color: var(--field-focus-border);
+  box-shadow: var(--field-focus-shadow);
+}
+
+.repeatable-token-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.repeatable-token-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: var(--switcher-button-active-bg);
+  color: var(--text);
+  line-height: 1;
+}
+
+.repeatable-token-remove {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+}
+
+.repeatable-token-input {
+  flex: 1 1 180px;
+  min-width: 140px;
+  width: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  box-shadow: none;
+}
+
+.repeatable-token-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.repeatable-token-input:disabled {
+  cursor: not-allowed;
+}
+
+.repeatable-token-hidden {
+  display: none;
+}
+
+.stack-item,
+.detail-item {
+  display: grid;
+  gap: 8px;
+}
+
+.stack-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.repeatable-card {
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--repeatable-card-bg);
+  border: 1px solid var(--repeatable-card-border);
+}
+
+.repeatable-card + .repeatable-card {
+  margin-top: 14px;
+}
+
+.repeatable-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.repeatable-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 18px;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.button-primary,
+.button-secondary,
+.button-link {
+  border: 0;
+  cursor: pointer;
+}
+
+.button-primary,
+.button-secondary {
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.button-primary {
+  background: var(--button-primary-bg);
+  color: var(--button-primary-color);
+  box-shadow: var(--button-primary-shadow);
+}
+
+.button-primary:hover {
+  transform: var(--button-primary-hover-transform);
+  box-shadow: var(--button-primary-hover-shadow);
+}
+
+.button-secondary {
+  background: var(--button-secondary-bg);
+  color: var(--accent-dark);
+  border: 1px solid var(--button-secondary-border);
+}
+
+.button-secondary:hover {
+  background: var(--button-secondary-hover-bg);
+}
+
+.button-link {
+  padding: 0;
+  background: transparent;
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+.inline-symbol-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--inline-symbol-border);
+  border-radius: 14px;
+  background: var(--inline-symbol-bg);
+  color: var(--accent-dark);
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.add-inline,
+.remove-inline {
+  justify-self: start;
+}
+
+.add-inline {
+  align-self: start;
+}
+
+.inline-symbol-button:hover {
+  background: var(--inline-symbol-hover-bg);
+}
+
+.preview-card {
+  margin-top: 24px;
+}
+
+.preview-output {
+  margin: 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--preview-output-bg);
+  color: var(--preview-output-color);
+  overflow: auto;
+  min-height: 180px;
+}
+
+.detail-placeholder {
+  margin: 0;
+  color: var(--muted);
+}

@@ -1,0 +1,73 @@
+/* Responsive overrides keep the layout readable on tablets and phones. */
+
+@media (max-width: 1080px) {
+  .landing-layout,
+  .page-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .forms-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    width: min(100vw - 20px, 100%);
+    padding-top: 10px;
+  }
+
+  body[data-app="landing"] .app-shell {
+    min-height: auto;
+  }
+
+  .topbar,
+  .section-head,
+  .repeatable-card-head,
+  .section-heading--compact {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .forms-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field {
+    grid-column: span 12;
+  }
+
+  .field--inline {
+    grid-template-columns: 1fr;
+  }
+
+  .field--inline > label,
+  .field--inline > input,
+  .field--inline > select,
+  .field--inline > textarea,
+  .field--inline > .gps-input-group,
+  .field--inline > .repeatable-field-shell,
+  .field--inline > .repeatable-token-field,
+  .field--inline > .option-list,
+  .field--inline > .stack-list,
+  .field--inline > .button-link {
+    grid-column: 1;
+  }
+
+  .gps-input-group {
+    grid-template-columns: 1fr;
+  }
+
+  .form-shell,
+  .page-header,
+  .hero-card,
+  .forms-panel,
+  .sidebar-card,
+  .preview-card {
+    padding: 18px;
+  }
+}
