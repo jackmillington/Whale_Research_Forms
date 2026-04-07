@@ -1,4 +1,5 @@
 (function () {
+  // Shared option lists and the central form definitions live here.
   const yesNoOptions = ["Yes", "No"];
   const compassOptions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
   const conditionOptions = ["raw", "healing", "new", "bleeding", "severe"];
