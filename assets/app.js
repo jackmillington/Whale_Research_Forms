@@ -1,5 +1,12 @@
 (function () {
   const forms = window.WHALE_FORMS || [];
+  const preferredFormOrder = [
+    "research-logbook",
+    "newborn",
+    "cos-study",
+    "dolphing-sightings-w-whales"
+  ];
+  const orderedForms = getOrderedForms(forms, preferredFormOrder);
   const formsById = Object.fromEntries(forms.map((form) => [form.id, form]));
   const THEME_STORAGE_KEY = "whale-forms-theme";
   const DEFAULT_THEME = "dark";
@@ -27,7 +34,7 @@
       return;
     }
 
-    grid.innerHTML = forms
+    grid.innerHTML = orderedForms
       .map(
         (form) => `
           <a class="form-card" href="${form.file}">
@@ -61,7 +68,6 @@
           <span class="brand-mark">WF</span>
           <span class="brand-copy">
             <strong>${escapeHtml(formConfig.title)}</strong>
-            <span>${escapeHtml(formConfig.workbookSheet)}</span>
           </span>
         </a>
         <div class="topbar-actions">
@@ -112,12 +118,30 @@
   }
 
   function renderSidebarLinks(activeFormId) {
-    return forms
+    return orderedForms
       .map(
         (form) =>
           `<a class="${form.id === activeFormId ? "is-active" : ""}" href="${form.file}">${escapeHtml(form.title)}</a>`
       )
       .join("");
+  }
+
+  function getOrderedForms(sourceForms, preferredOrder) {
+    const rankById = new Map(preferredOrder.map((id, index) => [id, index]));
+
+    return sourceForms
+      .map((form, index) => ({ form, index }))
+      .sort((left, right) => {
+        const leftRank = rankById.has(left.form.id) ? rankById.get(left.form.id) : Number.MAX_SAFE_INTEGER;
+        const rightRank = rankById.has(right.form.id) ? rankById.get(right.form.id) : Number.MAX_SAFE_INTEGER;
+
+        if (leftRank !== rightRank) {
+          return leftRank - rightRank;
+        }
+
+        return left.index - right.index;
+      })
+      .map(({ form }) => form);
   }
 
   function renderThemeSwitcher() {
@@ -181,13 +205,7 @@
     const repeatable = section.repeatable;
     return `
       <section class="form-section section-repeatable" ${dependencyAttributes(section.dependsOn)}>
-        ${renderSectionHeader(
-          section.title,
-          section.description,
-          `<button type="button" class="button-secondary repeatable-add" data-repeatable-add="${repeatable.key}">
-            ${escapeHtml(repeatable.addLabel || "Add")}
-          </button>`
-        )}
+        ${renderSectionHeader(section.title, section.description)}
         <div
           class="repeatable-list"
           data-repeatable-list="${repeatable.key}"
@@ -195,6 +213,11 @@
           data-min-items="${repeatable.min || 1}"
         >
           ${renderRepeatableCard(repeatable, 0)}
+        </div>
+        <div class="repeatable-actions">
+          <button type="button" class="button-secondary repeatable-add" data-repeatable-add="${repeatable.key}">
+            ${escapeHtml(repeatable.addLabel || "Add")}
+          </button>
         </div>
       </section>
     `;
@@ -216,7 +239,6 @@
       <div class="section-head">
         <div>
           <h2>${escapeHtml(title)}</h2>
-          ${description ? `<p>${escapeHtml(description)}</p>` : ""}
         </div>
         ${actionMarkup || ""}
       </div>
@@ -299,6 +321,10 @@
   }
 
   function renderRepeatableFieldControl(field, fieldName) {
+    if (field.type === "text") {
+      return renderRepeatableTokenFieldControl(field, fieldName);
+    }
+
     const items = [];
     for (let index = 0; index < field.repeatable.min; index += 1) {
       items.push(renderRepeatableFieldItem(field, fieldName, index));
@@ -320,6 +346,31 @@
           ${items.join("")}
         </div>
         ${addButton}
+      </div>
+    `;
+  }
+
+  function renderRepeatableTokenFieldControl(field, fieldName) {
+    return `
+      <div class="repeatable-token-field">
+        <div class="repeatable-token-shell">
+          <div class="repeatable-token-list" data-repeatable-chip-list="${fieldName}"></div>
+          <input
+            id="${escapeAttr(inputId(`${fieldName}__entry`))}"
+            class="repeatable-token-input"
+            type="text"
+            data-repeatable-field-input="${fieldName}"
+            placeholder="${escapeAttr(field.repeatable.max > 1 ? `Type ${field.repeatable.itemLabel} and press Enter` : `Type ${field.repeatable.itemLabel}`)}"
+            aria-label="Add ${escapeAttr(field.repeatable.itemLabel)}"
+          >
+        </div>
+        <div
+          class="repeatable-token-hidden"
+          data-repeatable-field="${fieldName}"
+          data-repeatable-mode="chips"
+          data-repeatable-min="${field.repeatable.min}"
+          data-repeatable-max="${field.repeatable.max}"
+        ></div>
       </div>
     `;
   }
@@ -367,9 +418,10 @@
   }
 
   function renderSelect(field, fieldName) {
+    const placeholderText = field.selectPlaceholder || "Please select...";
     return `
       <select id="${escapeAttr(inputId(fieldName))}" name="${escapeAttr(fieldName)}" ${requiredAttribute(field.required)}>
-        <option value="">${field.required === "Y" ? "Required" : "Select..."}</option>
+        <option value="" selected disabled>${escapeHtml(placeholderText)}</option>
         ${(field.options || []).map((option) => `<option value="${escapeAttr(option)}">${escapeHtml(option)}</option>`).join("")}
       </select>
     `;
@@ -466,23 +518,48 @@
     initializeRepeatableSections(formEl);
     initializeRepeatableFields(formEl);
     syncConditionalState(formEl);
+    syncSectionLabelWidths(formEl);
     bindFormEvents(formEl);
+    bindResizeSync(formEl);
   }
 
   function bindFormEvents(formEl) {
     formEl.addEventListener("click", (event) => handleFormClick(formEl, event));
-    formEl.addEventListener("change", () => syncConditionalState(formEl));
+    formEl.addEventListener("keydown", (event) => handleFormKeydown(formEl, event));
+    formEl.addEventListener("change", () => {
+      syncConditionalState(formEl);
+      syncSectionLabelWidths(formEl);
+    });
     formEl.addEventListener("submit", (event) => handleFormSubmit(formEl, event));
     formEl.addEventListener("reset", () => {
       window.setTimeout(() => {
         resetRepeatableStructures(formEl);
         syncConditionalState(formEl);
+        syncSectionLabelWidths(formEl);
         document.getElementById("preview-output").textContent = "Submit the form to preview the structured payload.";
       }, 0);
     });
   }
 
+  function bindResizeSync(formEl) {
+    let frameId = 0;
+
+    window.addEventListener("resize", () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      frameId = window.requestAnimationFrame(() => {
+        syncSectionLabelWidths(formEl);
+        frameId = 0;
+      });
+    });
+  }
+
   function handleFormClick(formEl, event) {
+    if (handleRepeatableTokenRemove(formEl, event)) {
+      return;
+    }
     if (handleRepeatableSectionAdd(formEl, event)) {
       return;
     }
@@ -493,6 +570,10 @@
       return;
     }
     handleRepeatableFieldRemove(formEl, event);
+  }
+
+  function handleFormKeydown(formEl, event) {
+    handleRepeatableTokenInput(formEl, event);
   }
 
   function handleRepeatableSectionAdd(formEl, event) {
@@ -509,6 +590,7 @@
     list.insertAdjacentHTML("beforeend", renderRepeatableCard(section.repeatable, index));
     updateRepeatableHeadings(list, repeatableKey);
     syncConditionalState(formEl);
+    syncSectionLabelWidths(formEl);
     return true;
   }
 
@@ -527,6 +609,7 @@
       removeButton.closest(`[data-repeatable-item="${repeatableKey}"]`).remove();
       updateRepeatableHeadings(list, repeatableKey);
       syncConditionalState(formEl);
+      syncSectionLabelWidths(formEl);
     }
     return true;
   }
@@ -548,6 +631,7 @@
     const fieldConfig = findFieldConfigByName(getCurrentFormConfig(), fieldName);
     container.insertAdjacentHTML("beforeend", renderRepeatableFieldItem(fieldConfig, fieldName, currentCount));
     syncRepeatableFieldState(formEl, container, fieldConfig, fieldName);
+    syncSectionLabelWidths(formEl);
     return true;
   }
 
@@ -566,6 +650,7 @@
 
     removeButton.closest(".stack-item").remove();
     syncRepeatableFieldState(formEl, container, findFieldConfigByName(getCurrentFormConfig(), fieldName), fieldName);
+    syncSectionLabelWidths(formEl);
     return true;
   }
 
@@ -608,6 +693,12 @@
     formEl.querySelectorAll("[data-repeatable-field]").forEach((container) => {
       const fieldName = container.dataset.repeatableField;
       const fieldConfig = findFieldConfigByName(formConfig, fieldName);
+      if (container.dataset.repeatableMode === "chips") {
+        container.innerHTML = "";
+        syncRepeatableFieldState(formEl, container, fieldConfig, fieldName);
+        return;
+      }
+
       const minItems = Number(container.dataset.repeatableMin || 1);
 
       container.innerHTML = "";
@@ -620,6 +711,11 @@
   }
 
   function syncRepeatableFieldState(formEl, container, field, fieldName) {
+    if (container.dataset.repeatableMode === "chips") {
+      syncRepeatableTokenFieldState(container, field, fieldName);
+      return;
+    }
+
     const minItems = Number(container.dataset.repeatableMin || 1);
     const maxItems = Number(container.dataset.repeatableMax || 1);
     const items = Array.from(container.querySelectorAll(".stack-item"));
@@ -645,6 +741,189 @@
     if (addButton) {
       addButton.hidden = items.length >= maxItems;
     }
+  }
+
+  function syncRepeatableTokenFieldState(container, field, fieldName) {
+    const wrapper = container.closest(".repeatable-token-field");
+    const chipList = wrapper.querySelector(`[data-repeatable-chip-list="${cssEscape(fieldName)}"]`);
+    const input = wrapper.querySelector(`[data-repeatable-field-input="${cssEscape(fieldName)}"]`);
+    const values = Array.from(container.querySelectorAll('input[type="hidden"]')).map((node) => node.value).filter(Boolean);
+    const minItems = Number(container.dataset.repeatableMin || 1);
+    const maxItems = Number(container.dataset.repeatableMax || 1);
+
+    container.innerHTML = values
+      .map(
+        (value, index) => `
+          <input type="hidden" name="${escapeAttr(`${fieldName}[${index}]`)}" value="${escapeAttr(value)}">
+        `
+      )
+      .join("");
+
+    chipList.innerHTML = values
+      .map(
+        (value, index) => `
+          <span class="repeatable-token-chip">
+            <span>${escapeHtml(value)}</span>
+            <button
+              type="button"
+              class="repeatable-token-remove"
+              data-repeatable-chip-remove="${fieldName}"
+              data-repeatable-chip-index="${index}"
+              aria-label="Remove ${escapeAttr(value)}"
+            >x</button>
+          </span>
+        `
+      )
+      .join("");
+
+    input.required = field.required === "Y" && values.length < minItems;
+    input.disabled = values.length >= maxItems;
+    input.value = "";
+    input.placeholder =
+      values.length >= maxItems
+        ? `${field.repeatable.itemLabel} limit reached`
+        : field.repeatable.max > 1
+          ? `Type ${field.repeatable.itemLabel} and press Enter`
+          : `Type ${field.repeatable.itemLabel}`;
+
+    if (field.required === "Y" && values.length < minItems) {
+      input.setCustomValidity(`Add at least ${minItems} ${field.repeatable.itemLabel}${minItems > 1 ? "s" : ""}.`);
+    } else {
+      input.setCustomValidity("");
+    }
+  }
+
+  function handleRepeatableTokenInput(formEl, event) {
+    const input = event.target.closest("[data-repeatable-field-input]");
+    if (!input || event.key !== "Enter") {
+      return false;
+    }
+
+    event.preventDefault();
+    const fieldName = input.dataset.repeatableFieldInput;
+    const container = formEl.querySelector(`[data-repeatable-field="${cssEscape(fieldName)}"]`);
+    const fieldConfig = findFieldConfigByName(getCurrentFormConfig(), fieldName);
+    const value = input.value.trim();
+    const values = Array.from(container.querySelectorAll('input[type="hidden"]')).map((node) => node.value);
+    const maxItems = Number(container.dataset.repeatableMax || 1);
+
+    if (!value || values.length >= maxItems || values.includes(value)) {
+      input.value = "";
+      return true;
+    }
+
+    values.push(value);
+    container.innerHTML = values
+      .map(
+        (item, index) => `<input type="hidden" name="${escapeAttr(`${fieldName}[${index}]`)}" value="${escapeAttr(item)}">`
+      )
+      .join("");
+    syncRepeatableFieldState(formEl, container, fieldConfig, fieldName);
+    syncSectionLabelWidths(formEl);
+    return true;
+  }
+
+  function handleRepeatableTokenRemove(formEl, event) {
+    const removeButton = event.target.closest("[data-repeatable-chip-remove]");
+    if (!removeButton) {
+      return false;
+    }
+
+    const fieldName = removeButton.dataset.repeatableChipRemove;
+    const removeIndex = Number(removeButton.dataset.repeatableChipIndex);
+    const container = formEl.querySelector(`[data-repeatable-field="${cssEscape(fieldName)}"]`);
+    const fieldConfig = findFieldConfigByName(getCurrentFormConfig(), fieldName);
+    const values = Array.from(container.querySelectorAll('input[type="hidden"]'))
+      .map((node) => node.value)
+      .filter((_, index) => index !== removeIndex);
+
+    container.innerHTML = values
+      .map(
+        (item, index) => `<input type="hidden" name="${escapeAttr(`${fieldName}[${index}]`)}" value="${escapeAttr(item)}">`
+      )
+      .join("");
+    syncRepeatableFieldState(formEl, container, fieldConfig, fieldName);
+    syncSectionLabelWidths(formEl);
+    return true;
+  }
+
+  function syncSectionLabelWidths(formEl) {
+    const inlineGap = 14;
+    const maxInlineLabelWidth = 260;
+
+    formEl.querySelectorAll(".form-section").forEach((section) => {
+      const fields = Array.from(section.querySelectorAll('.field--inline:not([hidden])'));
+      if (fields.length === 0) {
+        section.style.removeProperty("--inline-label-column");
+        return;
+      }
+
+      const inlineFieldsByColumn = new Map();
+
+      fields.forEach((field) => {
+        const label = field.querySelector(":scope > label");
+        if (!label) {
+          return;
+        }
+
+        const labelWidth = measureNaturalLabelWidth(label);
+        const preferredInlineLabelWidth = Math.min(maxInlineLabelWidth, Math.max(88, Math.ceil(labelWidth)));
+        const fieldWidth = field.getBoundingClientRect().width;
+        const shouldStack = preferredInlineLabelWidth + inlineGap + getMinimumControlWidth(field) > fieldWidth;
+
+        field.classList.toggle("field--stacked-inline", shouldStack);
+        if (!shouldStack) {
+          const columnKey = Math.round(field.getBoundingClientRect().left);
+          const group = inlineFieldsByColumn.get(columnKey) || [];
+          group.push({ field, preferredInlineLabelWidth });
+          inlineFieldsByColumn.set(columnKey, group);
+        } else {
+          field.style.removeProperty("--field-inline-label-column");
+        }
+      });
+
+      if (inlineFieldsByColumn.size === 0) {
+        section.style.removeProperty("--inline-label-column");
+        return;
+      }
+
+      const inlineLabelWidths = [];
+      inlineFieldsByColumn.forEach((group) => {
+        const columnWidth = Math.max(...group.map((item) => item.preferredInlineLabelWidth));
+        inlineLabelWidths.push(columnWidth);
+        group.forEach(({ field }) => {
+          field.style.setProperty("--field-inline-label-column", `${columnWidth}px`);
+        });
+      });
+
+      const widestLabel = Math.max(...inlineLabelWidths);
+      const clampedWidth = Math.min(maxInlineLabelWidth, Math.max(88, Math.ceil(widestLabel)));
+      section.style.setProperty("--inline-label-column", `${clampedWidth}px`);
+    });
+  }
+
+  function measureNaturalLabelWidth(label) {
+    const clone = label.cloneNode(true);
+    clone.style.position = "absolute";
+    clone.style.visibility = "hidden";
+    clone.style.width = "max-content";
+    clone.style.maxWidth = "none";
+    clone.style.whiteSpace = "nowrap";
+    clone.style.pointerEvents = "none";
+
+    document.body.appendChild(clone);
+    const width = clone.getBoundingClientRect().width;
+    clone.remove();
+
+    return width;
+  }
+
+  function getMinimumControlWidth(field) {
+    if (field.querySelector(".option-list")) {
+      return 200;
+    }
+
+    return 220;
   }
 
   function updateRepeatableHeadings(list, repeatableKey) {
@@ -694,6 +973,7 @@
     const detailFieldName = container.dataset.detailName;
     const detailType = container.dataset.detailType;
     const selectedOptions = getFieldValue(formEl, sourceFieldName);
+    const existingValues = collectDetailValues(container);
 
     if (!Array.isArray(selectedOptions) || selectedOptions.length === 0) {
       container.innerHTML = '<p class="detail-placeholder">Select one or more values above to reveal details.</p>';
@@ -702,11 +982,11 @@
 
     const options = findFieldConfigByName(getCurrentFormConfig(), detailFieldName).options || [];
     container.innerHTML = selectedOptions
-      .map((option, index) => renderDetailItem(detailType, detailFieldName, option, index, options))
+      .map((option, index) => renderDetailItem(detailType, detailFieldName, option, index, options, existingValues[slugify(option)]))
       .join("");
   }
 
-  function renderDetailItem(detailType, detailFieldName, option, index, options) {
+  function renderDetailItem(detailType, detailFieldName, option, index, options, currentValue) {
     if (detailType === "details-number") {
       return `
         <div class="detail-item">
@@ -717,6 +997,7 @@
             type="number"
             min="0"
             step="1"
+            ${currentValue ? `value="${escapeAttr(currentValue)}"` : ""}
           >
         </div>
       `;
@@ -726,11 +1007,27 @@
       <div class="detail-item">
         <label for="${escapeAttr(inputId(`${detailFieldName}[${index}]`))}">${escapeHtml(option)} condition</label>
         <select id="${escapeAttr(inputId(`${detailFieldName}[${index}]`))}" name="${escapeAttr(`${detailFieldName}.${slugify(option)}`)}">
-          <option value="">Select...</option>
-          ${options.map((item) => `<option value="${escapeAttr(item)}">${escapeHtml(item)}</option>`).join("")}
+          <option value="" ${currentValue ? "disabled" : "selected disabled"}>Please select...</option>
+          ${options
+            .map(
+              (item) =>
+                `<option value="${escapeAttr(item)}" ${currentValue === item ? "selected" : ""}>${escapeHtml(item)}</option>`
+            )
+            .join("")}
         </select>
       </div>
     `;
+  }
+
+  function collectDetailValues(container) {
+    return Array.from(container.querySelectorAll("input, select")).reduce((values, field) => {
+      const name = field.name || "";
+      const key = name.split(".").pop();
+      if (key && field.value) {
+        values[key] = field.value;
+      }
+      return values;
+    }, {});
   }
 
   function evaluateDependency(formEl, fieldName, mode, expectedValue) {
@@ -885,17 +1182,11 @@
       return "";
     }
 
-    const bits = [];
     if (field.placeholder) {
-      bits.push(field.placeholder);
-    } else if (field.required === "Y") {
-      bits.push("Required");
-    }
-    if (field.unit) {
-      bits.push(`(${field.unit})`);
+      return `placeholder="${escapeAttr(field.placeholder)}"`;
     }
 
-    return bits.length ? `placeholder="${escapeAttr(bits.join(" "))}"` : "";
+    return field.required === "Y" ? 'placeholder="Required"' : "";
   }
 
   function inputId(name) {
