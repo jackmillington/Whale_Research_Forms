@@ -3,6 +3,7 @@
   const compassOptions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
   const conditionOptions = ["raw", "healing", "new", "bleeding", "severe"];
   const scarOptions = ["Dorsal", "Alongflank", "Boat Strike", "Sunburn", "Cookie cutter"];
+  const vesselOptions = ["SOM", "KAI", "MULG", "RIB", "OTHER"];
 
   window.WHALE_FORMS = [
     {
@@ -17,9 +18,10 @@
           fields: [
             { key: "date", label: "Date", type: "date", required: "Y" },
             { key: "researcher", label: "Researcher", type: "text", required: "Y", repeatable: { min: 1, max: 3, itemLabel: "Researcher" }, helper: "Must allow adding up to 3 researchers." },
-            { key: "vessel", label: "Vessel", type: "text", required: "Y" },
+            { key: "vessel", label: "Vessel", type: "select", required: "Y", options: vesselOptions },
             { key: "tour_time", label: "Tour Time", type: "time", required: "Y" },
-            { key: "skipper", label: "Skipper", type: "text", required: "Y" }
+            { key: "skipper", label: "Skipper", type: "text", required: "Y" },
+            { key: "newborn_in_pod", label: "Newborn in the pod?", type: "select", required: "Y", options: yesNoOptions }
           ]
         },
         {
@@ -27,15 +29,15 @@
           fields: [
             { key: "num_adults", label: "Num of Adults", type: "number", required: "Y", min: 0, step: 1, helper: "Workbook note: adults is 12m+; juvenile note remains unresolved in the source workbook." },
             { key: "num_juveniles", label: "Num of Juveniles", type: "number", required: "Y", min: 0, step: 1 },
-            { key: "mum_calf", label: "Mum & Calf", type: "checkbox", required: "Y" },
-            { key: "mum_calf_escort", label: "Mum/Calf/Escort", type: "checkbox", required: "Y" },
-            { key: "num_escorts", label: "Num of Escorts", type: "number", required: "C", min: 0, step: 1, dependsOn: { field: "mum_calf_escort", equals: true }, helper: "Only shown when Mum/Calf/Escort is clicked." },
+            { key: "mum_calf", label: "Mum & Calf?", type: "select", required: "Y", options: yesNoOptions },
+            { key: "mum_calf_escort", label: "Mum/Calf/Escort", type: "select", required: "Y", options: yesNoOptions },
+            { key: "num_escorts", label: "Num of Escorts", type: "number", required: "C", min: 0, step: 1, dependsOn: { field: "mum_calf_escort", equals: "Yes" }, helper: "Only shown when Mum/Calf/Escort is Yes." },
             { key: "num_animals", label: "Num of Animals", type: "number", required: "Y", min: 0, step: 1 },
             { key: "initial_behaviour", label: "Initial Behaviour before Approach", type: "select", required: "Y", options: ["Travel", "Mill", "Rest", "Swim by", "Surface active", "Mugging other boat", "Other"] },
             { key: "initial_behaviour_other", label: "Other", type: "text", required: "C", dependsOn: { field: "initial_behaviour", includes: "Other" }, helper: "Only shown when Other is selected above." },
             { key: "num_other_boats", label: "Num of other boats", type: "number", required: "Y", min: 0, step: 1 },
             { key: "engines_state", label: "Engines off or neutral", type: "radio", required: "Y", options: ["Off", "Neutral"], helper: "Rendered as an exclusive choice because the workbook says only 1 box may be checked." },
-            { key: "depth", label: "Depth", type: "number", required: "Y", min: 0, step: "any", unit: "meters" },
+            { key: "depth", label: "Depth (meters)", type: "number", required: "Y", min: 0, step: "any", unit: "meters" },
             { key: "gps", label: "GPS", type: "gps", required: "Y", latitudeKey: "gps_latitude", longitudeKey: "gps_longitude" },
             { key: "gps_track_name", label: "GPS Track Name", type: "text", required: "Y" }
           ]
@@ -47,7 +49,7 @@
             key: "approaches",
             itemLabel: "Approach",
             min: 1,
-            addLabel: "Add Approach",
+            addLabel: "Add Another Approach",
             fields: [
               { key: "start_time", label: "Start Time", type: "time", required: "Y" },
               { key: "end_time", label: "End Time", type: "time", required: "Y" },
@@ -63,12 +65,12 @@
           fields: [
             { key: "photos", label: "Photos", type: "text", required: "Y", placeholder: "337-442 NELLIE" },
             { key: "videos", label: "Videos", type: "number", required: "Y", min: 0, step: 1 },
-            { key: "presence_bnd", label: "Presence of BND", type: "checkbox", required: "Y" },
-            { key: "num_bnd", label: "Num of BND", type: "number", required: "C", min: 0, step: 1, dependsOn: { field: "presence_bnd", equals: true } },
-            { key: "presence_cd", label: "Presence of CD", type: "checkbox", required: "Y" },
-            { key: "num_cd", label: "Num of CD", type: "number", required: "C", min: 0, step: 1, dependsOn: { field: "presence_cd", equals: true } },
-            { key: "presence_birds", label: "Presence of Birds", type: "checkbox", required: "Y" },
-            { key: "num_birds", label: "Num of birds", type: "number", required: "C", min: 0, step: 1, dependsOn: { field: "presence_birds", equals: true } },
+            { key: "presence_bnd", label: "Presence of BND", type: "select", required: "Y", options: yesNoOptions },
+            { key: "num_bnd", label: "Num of BND", type: "number", required: "C", min: 0, step: 1, dependsOn: { field: "presence_bnd", equals: "Yes" } },
+            { key: "presence_cd", label: "Presence of CD", type: "select", required: "Y", options: yesNoOptions },
+            { key: "num_cd", label: "Num of CD", type: "number", required: "C", min: 0, step: 1, dependsOn: { field: "presence_cd", equals: "Yes" } },
+            { key: "presence_birds", label: "Presence of Birds", type: "select", required: "Y", options: yesNoOptions },
+            { key: "num_birds", label: "Num of birds", type: "number", required: "C", min: 0, step: 1, dependsOn: { field: "presence_birds", equals: "Yes" } },
             { key: "form_filled_by", label: "Form filled by", type: "text", required: "Y", repeatable: { min: 1, max: 2, itemLabel: "Form filled by" }, helper: "Allow up to 2 names." },
             { key: "checked_by", label: "Checked by", type: "text", required: "Y", repeatable: { min: 1, max: 2, itemLabel: "Checked by" }, helper: "Allow up to 2 names." }
           ]
@@ -87,7 +89,7 @@
           fields: [
             { key: "date", label: "Date", type: "date", required: "Y" },
             { key: "researcher", label: "Researcher", type: "text", required: "Y", repeatable: { min: 1, max: 2, itemLabel: "Researcher" }, helper: "Must allow up to 2 inputs." },
-            { key: "vessel", label: "Vessel", type: "text", required: "Y" },
+            { key: "vessel", label: "Vessel", type: "select", required: "Y", options: vesselOptions },
             { key: "tour_time", label: "Tour Time", type: "time", required: "Y" },
             { key: "skipper", label: "Skipper", type: "text", required: "Y" }
           ]
@@ -102,7 +104,7 @@
             { key: "num_in_group", label: "Num in Group", type: "number", required: "Y", min: 0, step: 1 },
             { key: "start_gps", label: "Start GPS", type: "gps", required: "Y", latitudeKey: "start_gps_latitude", longitudeKey: "start_gps_longitude" },
             { key: "end_gps", label: "End GPS", type: "gps", required: "Y", latitudeKey: "end_gps_latitude", longitudeKey: "end_gps_longitude" },
-            { key: "accompanying_whales", label: "Accompanying Whales?", type: "checkbox", required: "Y" },
+            { key: "accompanying_whales", label: "Accompanying Whales?", type: "select", required: "Y", options: yesNoOptions },
             { key: "mixed_group_of_dolphins", label: "Mixed Group of Dolphins", type: "radio", required: "Y", options: ["Single Species", "Mixed group"], helper: "Rendered as an exclusive choice because the workbook says only 1 box may be checked." },
             { key: "comments", label: "Comments", type: "textarea", required: "Y", maxLength: 600, helper: "Up to 100 words/numbers, 600 character limit." }
           ]
@@ -121,31 +123,31 @@
           fields: [
             { key: "date", label: "Date", type: "date", required: "Y" },
             { key: "researcher", label: "Researcher", type: "text", required: "Y", repeatable: { min: 1, max: 2, itemLabel: "Researcher" }, helper: "Must allow up to 2 names." },
-            { key: "vessel", label: "Vessel", type: "text", required: "Y" },
+            { key: "vessel", label: "Vessel", type: "select", required: "Y", options: vesselOptions },
             { key: "tour_time", label: "Tour Time", type: "time", required: "Y" },
             { key: "skipper", label: "Skipper", type: "text", required: "Y" },
             { key: "weather", label: "Weather", type: "select", required: "Y", options: ["sun", "cloud", "rain"] },
             { key: "seas", label: "Seas", type: "select", required: "Y", options: ["Flat", "Small", "Med", "Rough"] },
-            { key: "wind_speed", label: "Wind Speed", type: "number", required: "Y", min: 0, step: 1, unit: "knots" },
+            { key: "wind_speed", label: "Wind Speed (knots)", type: "number", required: "Y", min: 0, step: 1, unit: "knots" },
             { key: "wind_direction", label: "Wind Direction", type: "select", required: "Y", options: compassOptions, helper: "Assumption: compass-direction picker." },
-            { key: "newborn_in_pod", label: "Newborn in Pod", type: "checkbox", required: "Y" }
+            { key: "newborn_in_pod", label: "Newborn in Pod", type: "select", required: "Y", options: yesNoOptions }
           ]
         },
         {
           title: "Newborn Observation",
           description: "The MVP shows this section only when Newborn in Pod is selected.",
-          dependsOn: { field: "newborn_in_pod", equals: true },
+          dependsOn: { field: "newborn_in_pod", equals: "Yes" },
           fields: [
             { key: "sight_time_start", label: "Sight Time Start", type: "time", required: "Y" },
             { key: "dorsal_fin", label: "Dorsal Fin", type: "select", required: "Y", options: ["VRY TILT", "TILT", "ERECT"] },
             { key: "colour", label: "Colour", type: "select", required: "Y", options: ["Pale", "Med", "Dark"] },
             { key: "swim_skill", label: "Swim Skill", type: "select", required: "Y", options: ["Bad", "Good"] },
-            { key: "start_depth", label: "Start Depth", type: "number", required: "Y", min: 0, step: "any", unit: "meters" },
-            { key: "end_depth", label: "End Depth", type: "number", required: "Y", min: 0, step: "any", unit: "meters" },
+            { key: "start_depth", label: "Start Depth (meters)", type: "number", required: "Y", min: 0, step: "any", unit: "meters" },
+            { key: "end_depth", label: "End Depth (meters)", type: "number", required: "Y", min: 0, step: "any", unit: "meters" },
             { key: "start_gps", label: "Start GPS", type: "gps", required: "Y", latitudeKey: "start_gps_latitude", longitudeKey: "start_gps_longitude" },
             { key: "end_gps", label: "End GPS", type: "gps", required: "Y", latitudeKey: "end_gps_latitude", longitudeKey: "end_gps_longitude" },
             { key: "calf_size_vs_mum", label: "Calf Size vs Mum", type: "select", required: "Y", options: ["less1/3", "1/3", "BIG"] },
-            { key: "rostrum_out_surfacing", label: "Rostrum Out Surfacing", type: "checkbox", required: "Y" },
+            { key: "rostrum_out_surfacing", label: "Rostrum Out Surfacing", type: "select", required: "Y", options: yesNoOptions },
             { key: "calf_swim_position", label: "Calf Swim Position", type: "checkbox-group", required: "Y", options: ["Tuck", "Near", "Indep"], helper: "Workbook marks this as multiple choice." },
             { key: "number_of_escorts", label: "Number of Escorts", type: "number", required: "Y", min: 0, step: 1, defaultValue: 0, helper: "Default to 0." },
             { key: "calf_scars", label: "Calf Scars?", type: "checkbox-group", required: "N", options: scarOptions },
@@ -160,6 +162,8 @@
             { key: "please_comment", label: "Please Comment", type: "text", required: "C", dependsOn: { field: "other_species_with_pod", hasAny: true }, helper: "Only shown when at least one other species is selected." },
             { key: "gps_track_name", label: "GPS Track Name", type: "text", required: "Y" },
             { key: "comments", label: "Comments", type: "textarea", required: "Y", maxLength: 500, helper: "Must hold 75 words/numbers, 500 character limit." },
+            { key: "other_boats", label: "Other Boats?", type: "checkbox-group", required: "N", options: ["rec/fish", "jetskis", "big boats"] },
+            { key: "other_boats_amount", label: "Amount", type: "details-number", required: "C", sourceField: "other_boats", min: 0, step: 1, helper: "Shown for each selected other boat option." },
             { key: "direction_of_travel", label: "Direction of Travel", type: "select", required: "Y", options: ["North", "South", "None"] },
             { key: "form_filled_by", label: "Form Filled By", type: "text", required: "Y", repeatable: { min: 1, max: 2, itemLabel: "Form Filled By" }, helper: "Must allow up to 2 names." },
             { key: "checked_by", label: "Checked By", type: "text", required: "Y", repeatable: { min: 1, max: 2, itemLabel: "Checked By" }, helper: "Must allow up to 2 names." }
@@ -199,11 +203,11 @@
           fields: [
             { key: "date", label: "Date", type: "date", required: "Y" },
             { key: "researcher", label: "Researcher", type: "text", required: "Y", repeatable: { min: 1, max: 2, itemLabel: "Researcher" }, helper: "Allow 1 or 2 names." },
-            { key: "vessel", label: "Vessel", type: "text", required: "Y" },
+            { key: "vessel", label: "Vessel", type: "select", required: "Y", options: vesselOptions },
             { key: "tour_time", label: "Tour Time", type: "time", required: "Y" },
             { key: "skipper", label: "Skipper", type: "text", required: "Y" },
-            { key: "newborn", label: "Newborn?", type: "checkbox", required: "Y" },
-            { key: "calf_of_season", label: "Calf of Season?", type: "checkbox", required: "Y" }
+            { key: "newborn", label: "Newborn?", type: "select", required: "Y", options: yesNoOptions },
+            { key: "calf_of_season", label: "Calf of Season?", type: "select", required: "Y", options: yesNoOptions }
           ]
         },
         {
@@ -215,14 +219,14 @@
             { key: "calf_size_vs_mum", label: "Calf Size vs Mum", type: "select", required: "Y", options: [">1/3", "1/3", "BIG"] },
             { key: "travel_speed", label: "Travel Speed", type: "select", required: "Y", options: ["Slow", "Medium", "Fast"] },
             { key: "direction_of_travel", label: "Direction of Travel", type: "select", required: "Y", options: ["North", "South", "None"] },
-            { key: "head_out_surfacing", label: "Head Out Surfacing?", type: "checkbox", required: "Y" },
+            { key: "head_out_surfacing", label: "Head Out Surfacing?", type: "select", required: "Y", options: yesNoOptions },
             { key: "calf_swim_position", label: "Calf Swim Position", type: "checkbox-group", required: "Y", options: ["Tuck", "Near", "Ahead", "Indep"] },
             { key: "number_of_escorts", label: "Number of Escorts?", type: "number", required: "Y", min: 0, step: 1, defaultValue: 0, helper: "Default is 0." },
             { key: "calf_scars", label: "Calf Scars?", type: "checkbox-group", required: "N", options: scarOptions },
             { key: "condition", label: "Condition?", type: "details-select", required: "C", sourceField: "calf_scars", options: conditionOptions, helper: "Shown per selected scar." },
             { key: "dive_times", label: "Dive Times?", type: "checkbox-group", required: "C", options: ["<1 min", "<3 min", "<5 min", ">5 min", ">10 min"], helper: "Workbook notes 1 or 2 selections." },
             { key: "start_gps", label: "Start GPS", type: "gps", required: "Y", latitudeKey: "start_gps_latitude", longitudeKey: "start_gps_longitude" },
-            { key: "start_depth", label: "Start Depth", type: "number", required: "Y", min: 0, step: "any", unit: "meters" },
+            { key: "start_depth", label: "Start Depth (meters)", type: "number", required: "Y", min: 0, step: "any", unit: "meters" },
             { key: "calf_mode", label: "Calf Mode", type: "checkbox-group", required: "Y", options: ["Play", "Swim training", "Travelling"] }
           ]
         },
@@ -250,7 +254,7 @@
             { key: "other_species_comment", label: "Comment (on other species)", type: "text", required: "C", dependsOn: { field: "other_species", hasAny: true }, helper: "Shown when at least one other species is selected." },
             { key: "photos", label: "Photos", type: "text", required: "N", placeholder: "337-442 NELLIE" },
             { key: "end_gps", label: "End GPS", type: "gps", required: "Y", latitudeKey: "end_gps_latitude", longitudeKey: "end_gps_longitude" },
-            { key: "depth", label: "Depth", type: "number", required: "Y", min: 0, step: "any", unit: "meters" },
+            { key: "depth", label: "Depth (meters)", type: "number", required: "Y", min: 0, step: "any", unit: "meters" },
             { key: "gps_track_name", label: "GPS Track Name", type: "text", required: "Y" },
             { key: "data_recorder", label: "Data Recorder", type: "text", required: "Y" },
             { key: "data_checker", label: "Data Checker", type: "text", required: "Y" }
@@ -272,7 +276,7 @@
             { key: "researchers", label: "Researchers", type: "text", required: "Y", repeatable: { min: 1, max: 3, itemLabel: "Researcher" } },
             { key: "start_time", label: "Start time", type: "time", required: "Y" },
             { key: "end_time", label: "End time", type: "time", required: "Y" },
-            { key: "vessel", label: "Vessel", type: "text", required: "Y", helper: "Workbook says Dropdown/textbox but does not define options, so this MVP uses free text." },
+            { key: "vessel", label: "Vessel", type: "select", required: "Y", options: vesselOptions },
             { key: "tour_time", label: "Tour time", type: "time", required: "Y" },
             { key: "skipper", label: "Skipper", type: "text", required: "Y" },
             { key: "bss", label: "BSS", type: "text", required: "Y", helper: "Workbook lists this as a dropdown but does not provide options." }
@@ -305,7 +309,7 @@
               { key: "position", label: "Position", type: "text", required: "Y", helper: "Workbook lists this as a dropdown but does not provide options." },
               { key: "activity", label: "Activity", type: "text", required: "Y", helper: "Workbook lists this as a dropdown but does not provide options." },
               { key: "mum_position", label: "Mum position", type: "text", required: "C", helper: "Workbook lists this as a dropdown but does not provide options." },
-              { key: "close_to_boat", label: "Close to boat", type: "checkbox", required: "C" },
+              { key: "close_to_boat", label: "Close to boat", type: "select", required: "C", options: yesNoOptions },
               { key: "behaviours", label: "Behaviours", type: "textarea", required: "C", helper: "Workbook lists this as a multi-select checkbox but does not provide options." },
               { key: "touch", label: "Touch", type: "text", required: "C", helper: "Workbook lists this as a dropdown but does not provide options." },
               { key: "observation_interval", label: "Observation Interval", type: "number", required: "Y", min: 2, max: 2, step: 1, defaultValue: 2, readOnly: true, helper: "Locked to the workbook default of 2 minute." },
@@ -330,7 +334,7 @@
             { key: "skipper", label: "Skipper", type: "text", required: "Y" },
             { key: "researcher", label: "Researcher", type: "text", required: "Y", repeatable: { min: 1, max: 2, itemLabel: "Researcher" } },
             { key: "tour_time", label: "Tour Time", type: "time", required: "Y" },
-            { key: "vessel", label: "Vessel", type: "text", required: "Y" },
+            { key: "vessel", label: "Vessel", type: "select", required: "Y", options: vesselOptions },
             { key: "photos", label: "Photos", type: "text", required: "Y", placeholder: "337-442 NELLIE" },
             { key: "details", label: "Details", type: "textarea", required: "Y", maxLength: 800, helper: "100 words/numbers, 800 characters." }
           ]
