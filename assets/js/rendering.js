@@ -275,6 +275,7 @@ function renderRepeatableTokenFieldControl(field, fieldName) {
           aria-label="Add ${escapeAttr(field.repeatable.itemLabel)}"
         >
       </div>
+      <p class="repeatable-token-note" data-repeatable-token-note="${fieldName}" hidden aria-live="polite"></p>
       <div
         class="repeatable-token-hidden"
         data-repeatable-field="${fieldName}"
