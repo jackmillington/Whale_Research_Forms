@@ -49,6 +49,7 @@ export function createFormController(getCurrentFormConfig) {
         formEl.querySelectorAll("[data-detail-list]").forEach((container) => {
           renderDetailInputs(formEl, container);
         });
+        syncRepeatableTokenLayouts(formEl);
         syncSectionLabelWidths(formEl);
         frameId = 0;
       });
@@ -249,9 +250,11 @@ export function createFormController(getCurrentFormConfig) {
     const wrapper = container.closest(".repeatable-token-field");
     const chipList = wrapper.querySelector(`[data-repeatable-chip-list="${cssEscape(fieldName)}"]`);
     const input = wrapper.querySelector(`[data-repeatable-field-input="${cssEscape(fieldName)}"]`);
+    const note = wrapper.querySelector(`[data-repeatable-token-note="${cssEscape(fieldName)}"]`);
     const values = Array.from(container.querySelectorAll('input[type="hidden"]')).map((node) => node.value).filter(Boolean);
     const minItems = Number(container.dataset.repeatableMin || 1);
     const maxItems = Number(container.dataset.repeatableMax || 1);
+    const atLimit = values.length >= maxItems;
 
     container.innerHTML = values
       .map(
@@ -279,20 +282,52 @@ export function createFormController(getCurrentFormConfig) {
       .join("");
 
     input.required = field.required === "Y" && values.length < minItems;
-    input.disabled = values.length >= maxItems;
+    input.disabled = atLimit;
     input.value = "";
-    input.placeholder =
-      values.length >= maxItems
-        ? `${field.repeatable.itemLabel} limit reached`
-        : field.repeatable.max > 1
-          ? "Type & Press Enter"
-          : `Type ${field.repeatable.itemLabel}`;
+    input.hidden = atLimit;
+    input.placeholder = field.repeatable.max > 1 ? "Type & Press Enter" : `Type ${field.repeatable.itemLabel}`;
+
+    if (note) {
+      note.hidden = !atLimit;
+      note.textContent = atLimit ? `${field.repeatable.itemLabel} limit reached` : "";
+    }
+
+    syncRepeatableTokenLayout(wrapper, chipList, input);
 
     if (field.required === "Y" && values.length < minItems) {
       input.setCustomValidity(`Add at least ${minItems} ${field.repeatable.itemLabel}${minItems > 1 ? "s" : ""}.`);
     } else {
       input.setCustomValidity("");
     }
+  }
+
+  function syncRepeatableTokenLayouts(formEl) {
+    formEl.querySelectorAll('[data-repeatable-mode="chips"]').forEach((container) => {
+      const fieldName = container.dataset.repeatableField;
+      const fieldConfig = findFieldConfigByName(getCurrentFormConfig(), fieldName);
+      if (!fieldConfig) {
+        return;
+      }
+
+      syncRepeatableFieldState(formEl, container, fieldConfig, fieldName);
+    });
+  }
+
+  function syncRepeatableTokenLayout(wrapper, chipList, input) {
+    if (!wrapper || !chipList || !input) {
+      return;
+    }
+
+    wrapper.classList.remove("repeatable-token-field--stacked");
+
+    const shell = wrapper.querySelector(".repeatable-token-shell");
+    if (!shell) {
+      return;
+    }
+
+    const chipOverflow = shell.scrollWidth > shell.clientWidth + 1 || chipList.scrollWidth > chipList.clientWidth + 1;
+
+    wrapper.classList.toggle("repeatable-token-field--stacked", chipOverflow);
   }
 
   function handleRepeatableTokenInput(formEl, event) {
