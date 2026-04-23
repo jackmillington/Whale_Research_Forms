@@ -1,5 +1,29 @@
 /* Responsive overrides keep the layout readable on tablets and phones. */
 
+@media (min-width: 1440px) {
+  .field:not(.field--wide):not(.field-detail) {
+    grid-column: span 4;
+  }
+}
+
+@media (min-width: 1081px) and (max-width: 1439px) {
+  .app-shell {
+    width: min(100vw - 24px, 100%);
+  }
+
+  .page-layout {
+    grid-template-columns: 248px minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .sidebar-card,
+  .page-header,
+  .form-shell,
+  .preview-card {
+    padding: 20px;
+  }
+}
+
 @media (max-width: 1080px) {
   .landing-layout,
   .page-layout {

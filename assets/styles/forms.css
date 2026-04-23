@@ -31,7 +31,7 @@
 .field--inline {
   grid-template-columns: var(--field-inline-label-column, var(--inline-label-column)) minmax(0, 1fr);
   align-items: center;
-  column-gap: 14px;
+  column-gap: var(--field-inline-gap, 14px);
   row-gap: 8px;
 }
 
@@ -133,8 +133,25 @@ select:invalid {
   color: var(--placeholder);
 }
 
+select {
+  color-scheme: var(--native-color-scheme);
+}
+
 select option {
   color: var(--text);
+}
+
+:root[data-browser="firefox"] select,
+body[data-browser="firefox"] select {
+  color-scheme: var(--native-color-scheme);
+}
+
+:root[data-browser="firefox"] select option,
+:root[data-browser="firefox"] select optgroup,
+body[data-browser="firefox"] select option,
+body[data-browser="firefox"] select optgroup {
+  background: var(--select-popup-bg);
+  color: var(--select-popup-color);
 }
 
 textarea {
@@ -153,6 +170,7 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: flex-start;
   max-width: 100%;
 }
 
@@ -161,6 +179,36 @@ textarea {
   flex-wrap: wrap;
   gap: 8px;
   max-width: none;
+}
+
+.option-stack {
+  display: grid;
+  gap: 6px;
+  width: max-content;
+}
+
+.inline-detail-row {
+  display: grid;
+  grid-template-columns: var(--field-inline-label-column, var(--inline-label-column)) minmax(0, 1fr);
+  column-gap: var(--field-inline-gap, 14px);
+  row-gap: 8px;
+  align-items: start;
+  grid-column: 1 / -1;
+}
+
+.inline-detail-label {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+}
+
+.inline-detail-controls {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
 }
 
 .option-chip {
@@ -239,7 +287,7 @@ textarea {
   padding: 8px 10px;
   border-radius: 999px;
   background: var(--switcher-button-active-bg);
-  color: var(--text);
+  color: var(--switcher-button-active-color);
   line-height: 1;
 }
 
@@ -253,23 +301,24 @@ textarea {
   line-height: 1;
 }
 
-.repeatable-token-input {
-  flex: 1 1 180px;
-  min-width: 140px;
-  width: auto;
+.repeatable-token-shell > .repeatable-token-input[type="text"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
   padding: 0;
   border: 0;
+  border-radius: 0;
   background: transparent;
   color: var(--text);
   box-shadow: none;
 }
 
-.repeatable-token-input:focus {
+.repeatable-token-shell > .repeatable-token-input[type="text"]:focus {
   outline: none;
   box-shadow: none;
 }
 
-.repeatable-token-input:disabled {
+.repeatable-token-shell > .repeatable-token-input[type="text"]:disabled {
   cursor: not-allowed;
 }
 
@@ -281,6 +330,53 @@ textarea {
 .detail-item {
   display: grid;
   gap: 8px;
+}
+
+.field-detail--number {
+  display: none;
+}
+
+.detail-item--number {
+  width: min(120px, 100%);
+}
+
+.detail-item--number label {
+  justify-content: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.1;
+}
+
+.detail-item--number input[type="number"] {
+  width: 100%;
+  max-width: 120px;
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+.option-detail-number {
+  width: 100%;
+}
+
+.option-detail-number input[type="number"] {
+  width: 100%;
+  max-width: none;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+.option-detail-spacer {
+  flex: 0 0 auto;
+  min-height: 40px;
+}
+
+.field--stacked-inline .inline-detail-row {
+  grid-template-columns: 1fr;
+}
+
+.field--stacked-inline .inline-detail-label,
+.field--stacked-inline .inline-detail-controls {
+  grid-column: 1;
 }
 
 .stack-item {
