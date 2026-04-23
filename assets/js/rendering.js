@@ -191,9 +191,14 @@ export function renderField(field, prefix) {
 }
 
 function renderDetailField(field, fieldName) {
+  const detailClasses = ["field", "field--wide", "field-detail"];
+  if (field.type === "details-number") {
+    detailClasses.push("field-detail--number");
+  }
+
   return `
     <div
-      class="field field--wide field-detail"
+      class="${detailClasses.join(" ")}"
       data-field-wrapper="${fieldName}"
       ${dependencyAttributes({ field: field.sourceField, hasAny: true })}
     >
@@ -266,7 +271,7 @@ function renderRepeatableTokenFieldControl(field, fieldName) {
           class="repeatable-token-input"
           type="text"
           data-repeatable-field-input="${fieldName}"
-          placeholder="${escapeAttr(field.repeatable.max > 1 ? `Type ${field.repeatable.itemLabel} and press Enter` : `Type ${field.repeatable.itemLabel}`)}"
+          placeholder="${escapeAttr(field.repeatable.max > 1 ? "Type & Press Enter" : `Type ${field.repeatable.itemLabel}`)}"
           aria-label="Add ${escapeAttr(field.repeatable.itemLabel)}"
         >
       </div>
@@ -362,10 +367,12 @@ function renderCheckboxGroup(field, fieldName) {
       ${(field.options || [])
         .map(
           (option) => `
-            <label class="option-chip">
-              <input type="checkbox" name="${escapeAttr(fieldName)}" value="${escapeAttr(option)}">
-              <span>${escapeHtml(option)}</span>
-            </label>
+            <div class="option-stack" data-option-stack="${escapeAttr(option)}">
+              <label class="option-chip">
+                <input type="checkbox" name="${escapeAttr(fieldName)}" value="${escapeAttr(option)}">
+                <span>${escapeHtml(option)}</span>
+              </label>
+            </div>
           `
         )
         .join("")}
@@ -416,8 +423,8 @@ export function renderRepeatableFieldItem(field, fieldName, index) {
 export function renderDetailItem(detailType, detailFieldName, option, index, options, currentValue) {
   if (detailType === "details-number") {
     return `
-      <div class="detail-item">
-        <label for="${escapeAttr(inputId(`${detailFieldName}[${index}]`))}">${escapeHtml(option)} amount</label>
+      <div class="detail-item detail-item--number">
+        <label for="${escapeAttr(inputId(`${detailFieldName}[${index}]`))}">${escapeHtml(option)}</label>
         <input
           id="${escapeAttr(inputId(`${detailFieldName}[${index}]`))}"
           name="${escapeAttr(`${detailFieldName}.${slugify(option)}`)}"
@@ -442,6 +449,24 @@ export function renderDetailItem(detailType, detailFieldName, option, index, opt
           )
           .join("")}
       </select>
+    </div>
+  `;
+}
+
+export function renderInlineDetailNumberItem(detailFieldName, option, index, currentValue, width) {
+  return `
+    <div class="option-detail-number" data-inline-detail-number="${escapeAttr(option)}" style="width: ${escapeAttr(String(width))}px;">
+      <input
+        id="${escapeAttr(inputId(`${detailFieldName}[${index}]`))}"
+        name="${escapeAttr(`${detailFieldName}.${slugify(option)}`)}"
+        type="number"
+        min="0"
+        step="1"
+        required
+        placeholder="Required"
+        aria-label="${escapeAttr(`${option} amount`)}"
+        ${currentValue ? `value="${escapeAttr(currentValue)}"` : ""}
+      >
     </div>
   `;
 }

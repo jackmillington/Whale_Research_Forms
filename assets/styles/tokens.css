@@ -57,6 +57,9 @@
     0 0 0 4px rgba(95, 189, 214, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --placeholder: rgba(177, 202, 214, 0.8);
+  --native-color-scheme: dark;
+  --select-popup-bg: #142838;
+  --select-popup-color: #ebf8ff;
   --option-bg: rgba(213, 240, 248, 0.08);
   --option-border: rgba(136, 188, 209, 0.16);
   --repeatable-card-bg: rgba(213, 240, 248, 0.06);
@@ -131,7 +134,10 @@ body[data-theme="light"] {
   --field-shadow: none;
   --field-focus-border: rgba(15, 118, 110, 0.32);
   --field-focus-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
-  --placeholder: rgba(92, 102, 95, 0.72);
+  --placeholder: rgba(61, 69, 64, 0.9);
+  --native-color-scheme: light;
+  --select-popup-bg: #fffaf2;
+  --select-popup-color: #1d2421;
   --option-bg: rgba(255, 255, 255, 0.72);
   --option-border: rgba(76, 58, 33, 0.14);
   --repeatable-card-bg: rgba(255, 255, 255, 0.82);

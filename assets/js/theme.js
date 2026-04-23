@@ -4,6 +4,7 @@ export function createThemeController() {
   const THEME_STORAGE_KEY = "whale-forms-theme";
   const DEFAULT_THEME = "dark";
   const THEMES = new Set(["light", "dark"]);
+  const FIREFOX_BROWSER_KEY = "firefox";
 
   return {
     applyTheme,
@@ -25,8 +26,14 @@ export function createThemeController() {
 
   function applyTheme(theme) {
     const nextTheme = THEMES.has(theme) ? theme : DEFAULT_THEME;
+    const browser = detectBrowser();
+
     document.documentElement.dataset.theme = nextTheme;
     document.body.dataset.theme = nextTheme;
+    document.documentElement.dataset.browser = browser;
+    document.body.dataset.browser = browser;
+    document.documentElement.style.colorScheme = nextTheme;
+    document.body.style.colorScheme = nextTheme;
 
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
@@ -54,5 +61,9 @@ export function createThemeController() {
       button.classList.toggle("is-active", isActive);
       button.setAttribute("aria-pressed", String(isActive));
     });
+  }
+
+  function detectBrowser() {
+    return /firefox/i.test(window.navigator.userAgent) ? FIREFOX_BROWSER_KEY : "default";
   }
 }

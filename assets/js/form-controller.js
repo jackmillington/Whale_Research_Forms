@@ -1,4 +1,4 @@
-import { renderDetailItem, renderRepeatableCard, renderRepeatableFieldItem, renderRepeatableFieldRemoveButton } from "./rendering.js";
+import { renderDetailItem, renderInlineDetailNumberItem, renderRepeatableCard, renderRepeatableFieldItem, renderRepeatableFieldRemoveButton } from "./rendering.js";
 import { cssEscape, escapeAttr, escapeHtml, inputId, slugify } from "./utils.js";
 
 /* Form controller wires repeatables, conditional fields, layout sync, and preview output. */
@@ -46,6 +46,9 @@ export function createFormController(getCurrentFormConfig) {
       }
 
       frameId = window.requestAnimationFrame(() => {
+        formEl.querySelectorAll("[data-detail-list]").forEach((container) => {
+          renderDetailInputs(formEl, container);
+        });
         syncSectionLabelWidths(formEl);
         frameId = 0;
       });
@@ -282,7 +285,7 @@ export function createFormController(getCurrentFormConfig) {
       values.length >= maxItems
         ? `${field.repeatable.itemLabel} limit reached`
         : field.repeatable.max > 1
-          ? `Type ${field.repeatable.itemLabel} and press Enter`
+          ? "Type & Press Enter"
           : `Type ${field.repeatable.itemLabel}`;
 
     if (field.required === "Y" && values.length < minItems) {
@@ -351,10 +354,12 @@ export function createFormController(getCurrentFormConfig) {
   /* Layout syncing keeps labels aligned until a field needs to stack. */
 
   function syncSectionLabelWidths(formEl) {
-    const inlineGap = 14;
-    const maxInlineLabelWidth = 260;
+    const inlineGap = isWideDesktopLayout() ? 8 : isCondensedDesktopLayout() ? 10 : 14;
+    const defaultMaxInlineLabelWidth = isWideDesktopLayout() ? 156 : isCondensedDesktopLayout() ? 176 : 260;
 
     formEl.querySelectorAll(".form-section").forEach((section) => {
+      section.style.setProperty("--field-inline-gap", `${inlineGap}px`);
+
       const fields = Array.from(section.querySelectorAll('.field--inline:not([hidden])'));
       if (fields.length === 0) {
         section.style.removeProperty("--inline-label-column");
@@ -370,6 +375,7 @@ export function createFormController(getCurrentFormConfig) {
         }
 
         const labelWidth = measureNaturalLabelWidth(label);
+        const maxInlineLabelWidth = getMaxInlineLabelWidth(field, defaultMaxInlineLabelWidth);
         const preferredInlineLabelWidth = Math.min(maxInlineLabelWidth, Math.max(88, Math.ceil(labelWidth)));
         const fieldWidth = field.getBoundingClientRect().width;
         const shouldStack = preferredInlineLabelWidth + inlineGap + getMinimumControlWidth(field) > fieldWidth;
@@ -400,7 +406,7 @@ export function createFormController(getCurrentFormConfig) {
       });
 
       const widestLabel = Math.max(...inlineLabelWidths);
-      const clampedWidth = Math.min(maxInlineLabelWidth, Math.max(88, Math.ceil(widestLabel)));
+      const clampedWidth = Math.min(defaultMaxInlineLabelWidth, Math.max(88, Math.ceil(widestLabel)));
       section.style.setProperty("--inline-label-column", `${clampedWidth}px`);
     });
   }
@@ -422,11 +428,91 @@ export function createFormController(getCurrentFormConfig) {
   }
 
   function getMinimumControlWidth(field) {
+    if (isWideDesktopLayout() && isWindSpeedField(field)) {
+      return 130;
+    }
+
+    if (isDesktopInlineTightLayout() && isObservationIntervalField(field)) {
+      return 138;
+    }
+
+    if (isDesktopInlineTightLayout() && isEnginesStateField(field)) {
+      return 140;
+    }
+
+    if (isDesktopInlineTightLayout() && isMixedGroupOfDolphinsField(field)) {
+      return 150;
+    }
+
+    if (isWideDesktopLayout()) {
+      if (field.querySelector(".option-list")) {
+        return 180;
+      }
+
+      return 150;
+    }
+
+    if (isCondensedDesktopLayout()) {
+      if (field.querySelector(".option-list")) {
+        return 168;
+      }
+
+      return 176;
+    }
+
     if (field.querySelector(".option-list")) {
       return 200;
     }
 
     return 220;
+  }
+
+  function getMaxInlineLabelWidth(field, defaultWidth) {
+    if (isWideDesktopLayout() && isWindSpeedField(field)) {
+      return 140;
+    }
+
+    if (isDesktopInlineTightLayout() && isObservationIntervalField(field)) {
+      return 138;
+    }
+
+    if (isDesktopInlineTightLayout() && isEnginesStateField(field)) {
+      return 132;
+    }
+
+    if (isDesktopInlineTightLayout() && isMixedGroupOfDolphinsField(field)) {
+      return 132;
+    }
+
+    return defaultWidth;
+  }
+
+  function isWindSpeedField(field) {
+    return field.dataset.fieldWrapper === "wind_speed";
+  }
+
+  function isObservationIntervalField(field) {
+    return (field.dataset.fieldWrapper || "").endsWith("observation_interval");
+  }
+
+  function isEnginesStateField(field) {
+    return field.dataset.fieldWrapper === "engines_state";
+  }
+
+  function isMixedGroupOfDolphinsField(field) {
+    return field.dataset.fieldWrapper === "mixed_group_of_dolphins";
+  }
+
+  function isDesktopInlineTightLayout() {
+    return isWideDesktopLayout() || isCondensedDesktopLayout();
+  }
+
+  function isCondensedDesktopLayout() {
+    return window.matchMedia("(min-width: 1081px) and (max-width: 1439px)").matches;
+  }
+
+  function isWideDesktopLayout() {
+    return window.matchMedia("(min-width: 1440px)").matches;
   }
 
   /* Conditional fields and detail controls rerender based on visible state. */
@@ -478,7 +564,15 @@ export function createFormController(getCurrentFormConfig) {
     const detailFieldName = container.dataset.detailName;
     const detailType = container.dataset.detailType;
     const selectedOptions = getFieldValue(formEl, sourceFieldName);
-    const existingValues = collectDetailValues(container);
+    const existingValues =
+      detailType === "details-number"
+        ? collectInlineDetailValues(formEl, detailFieldName)
+        : collectDetailValues(container);
+
+    if (detailType === "details-number") {
+      renderInlineNumberDetails(formEl, container, sourceFieldName, detailFieldName, selectedOptions, existingValues);
+      return;
+    }
 
     if (!Array.isArray(selectedOptions) || selectedOptions.length === 0) {
       container.innerHTML = '<p class="detail-placeholder">Select one or more values above to reveal details.</p>';
@@ -491,12 +585,107 @@ export function createFormController(getCurrentFormConfig) {
       .join("");
   }
 
+  function renderInlineNumberDetails(formEl, container, sourceFieldName, detailFieldName, selectedOptions, existingValues) {
+    const sourceWrapper = formEl.querySelector(`[data-field-wrapper="${cssEscape(sourceFieldName)}"]`);
+    const optionList = sourceWrapper?.querySelector(".option-list");
+    const detailField = container.closest(".field-detail");
+    const inlineLabel = detailField?.querySelector(":scope > label")?.textContent?.trim() || "Amount";
+
+    if (detailField) {
+      detailField.hidden = true;
+    }
+
+    if (!optionList) {
+      container.innerHTML = "";
+      removeInlineDetailRow(sourceWrapper, detailFieldName);
+      return;
+    }
+
+    if (!Array.isArray(selectedOptions) || selectedOptions.length === 0) {
+      container.innerHTML = "";
+      removeInlineDetailRow(sourceWrapper, detailFieldName);
+      return;
+    }
+
+    const sourceField = findFieldConfigByName(getCurrentFormConfig(), sourceFieldName);
+    const sourceOptions = sourceField?.options || selectedOptions;
+    const inlineDetailRow = ensureInlineDetailRow(sourceWrapper, detailFieldName, inlineLabel);
+    const controls = inlineDetailRow.querySelector("[data-inline-detail-controls]");
+
+    controls.innerHTML = "";
+
+    sourceOptions.forEach((option, index) => {
+      const optionStack = optionList.querySelector(`[data-option-stack="${cssEscape(option)}"]`);
+      if (!optionStack) {
+        return;
+      }
+
+      const chipWidth = Math.ceil(optionStack.getBoundingClientRect().width);
+      const isSelected = selectedOptions.includes(option);
+
+      if (isSelected) {
+        controls.insertAdjacentHTML(
+          "beforeend",
+          renderInlineDetailNumberItem(detailFieldName, option, index, existingValues[slugify(option)], chipWidth)
+        );
+        return;
+      }
+
+      controls.insertAdjacentHTML(
+        "beforeend",
+        `<div class="option-detail-spacer" aria-hidden="true" style="width: ${escapeAttr(String(chipWidth))}px;"></div>`
+      );
+    });
+
+    container.innerHTML = "";
+  }
+
+  function ensureInlineDetailRow(sourceWrapper, detailFieldName, labelText) {
+    let row = sourceWrapper?.querySelector(`[data-inline-detail-row="${cssEscape(detailFieldName)}"]`);
+    if (row) {
+      const label = row.querySelector("[data-inline-detail-label]");
+      if (label) {
+        label.textContent = labelText;
+      }
+      return row;
+    }
+
+    row = document.createElement("div");
+    row.className = "inline-detail-row";
+    row.dataset.inlineDetailRow = detailFieldName;
+    row.innerHTML = `
+      <div class="inline-detail-label" data-inline-detail-label>${escapeHtml(labelText)}</div>
+      <div class="inline-detail-controls" data-inline-detail-controls></div>
+    `;
+    sourceWrapper.appendChild(row);
+    return row;
+  }
+
+  function removeInlineDetailRow(sourceWrapper, detailFieldName) {
+    const row = sourceWrapper?.querySelector(`[data-inline-detail-row="${cssEscape(detailFieldName)}"]`);
+    if (row) {
+      row.remove();
+    }
+  }
+
   function collectDetailValues(container) {
     return Array.from(container.querySelectorAll("input, select")).reduce((values, field) => {
       const name = field.name || "";
       const key = name.split(".").pop();
       if (key && field.value) {
         values[key] = field.value;
+      }
+      return values;
+    }, {});
+  }
+
+  function collectInlineDetailValues(formEl, detailFieldName) {
+    const prefix = `${detailFieldName}.`;
+
+    return Array.from(formEl.elements).reduce((values, field) => {
+      const name = field.name || "";
+      if (name.startsWith(prefix) && field.value) {
+        values[name.slice(prefix.length)] = field.value;
       }
       return values;
     }, {});
