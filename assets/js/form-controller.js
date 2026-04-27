@@ -1,4 +1,5 @@
 import { renderDetailItem, renderInlineDetailNumberItem, renderRepeatableCard, renderRepeatableFieldItem, renderRepeatableFieldRemoveButton } from "./rendering.js";
+import { saveEntry } from "./storage.js";
 import { cssEscape, escapeAttr, escapeHtml, inputId, slugify } from "./utils.js";
 
 /* Form controller wires repeatables, conditional fields, layout sync, and preview output. */
@@ -59,6 +60,12 @@ export function createFormController(getCurrentFormConfig) {
   /* Click and keyboard handlers manage repeatable cards and chip-style fields. */
 
   function handleFormClick(formEl, event) {
+    const saveButton = event.target.closest("[data-save-local]");
+    if (saveButton) {
+      handleLocalSave(formEl, saveButton);
+      return;
+    }
+
     if (handleRepeatableTokenRemove(formEl, event)) {
       return;
     }
@@ -167,6 +174,43 @@ export function createFormController(getCurrentFormConfig) {
     }
 
     preview.textContent = JSON.stringify(collectFormData(formEl), null, 2);
+  }
+
+  async function handleLocalSave(formEl, saveButton) {
+    syncConditionalState(formEl);
+
+    const preview = document.getElementById("preview-output");
+    if (!formEl.reportValidity()) {
+      preview.textContent = "Could not save locally. Check highlighted required fields and visible conditional fields, then try again.";
+      return;
+    }
+
+    const currentForm = getCurrentFormConfig();
+    const timestamp = new Date().toISOString();
+    const payload = collectFormData(formEl);
+    const entry = {
+      id: crypto.randomUUID(),
+      formId: currentForm.id,
+      formTitle: currentForm.title,
+      schemaVersion: 1,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      data: payload
+    };
+
+    saveButton.disabled = true;
+    const originalLabel = saveButton.textContent;
+    saveButton.textContent = "Saving...";
+
+    try {
+      const savedEntry = await saveEntry(entry);
+      preview.textContent = `Saved locally.\n\n${JSON.stringify(savedEntry, null, 2)}`;
+    } catch (error) {
+      preview.textContent = `Could not save locally. ${error.message || "The browser rejected the local storage request."}`;
+    } finally {
+      saveButton.disabled = false;
+      saveButton.textContent = originalLabel;
+    }
   }
 
   /* Repeatable field setup handles both stacked inputs and chip-input variants. */

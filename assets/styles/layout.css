@@ -37,6 +37,27 @@ body[data-app="landing"] .app-shell {
   justify-content: flex-end;
 }
 
+.topbar-save-link,
+.section-action-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 40px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--button-primary-bg);
+  color: var(--button-primary-color);
+  box-shadow: var(--button-primary-shadow);
+  font-weight: 800;
+}
+
+.topbar-save-link:hover,
+.section-action-link:hover {
+  transform: var(--button-primary-hover-transform);
+  box-shadow: var(--button-primary-hover-shadow);
+}
+
 .theme-switcher {
   display: inline-flex;
   align-items: center;
@@ -100,7 +121,6 @@ body[data-app="landing"] .app-shell {
 
 .brand-copy span,
 .topbar-note,
-.top-links a,
 .section-head p,
 .preview-head p,
 .card-cta,
@@ -109,8 +129,13 @@ body[data-app="landing"] .app-shell {
   color: var(--muted);
 }
 
+.top-links a:not(.topbar-save-link) {
+  color: var(--muted);
+}
+
 .landing-layout,
-.page-layout {
+.page-layout,
+.saved-layout {
   display: grid;
   gap: 24px;
 }
@@ -129,7 +154,10 @@ body[data-app="landing"] .app-shell {
 .sidebar-card,
 .page-header,
 .form-shell,
-.preview-card {
+.preview-card,
+.saved-toolbar,
+.saved-entry-card,
+.empty-state {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -141,7 +169,10 @@ body[data-app="landing"] .app-shell {
 .forms-panel,
 .sidebar-card,
 .page-header,
-.preview-card {
+.preview-card,
+.saved-toolbar,
+.saved-entry-card,
+.empty-state {
   padding: 24px;
 }
 
@@ -315,4 +346,102 @@ body[data-app="landing"] .app-shell {
 .sections-stack {
   display: grid;
   gap: 20px;
+}
+
+.saved-layout {
+  align-content: start;
+}
+
+.saved-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.saved-toolbar h2,
+.saved-toolbar p,
+.saved-status,
+.saved-entry-card h2,
+.saved-entry-card p,
+.saved-entry-fields,
+.saved-entry-fields dd {
+  margin: 0;
+}
+
+.saved-toolbar p,
+.saved-status,
+.saved-entry-card p,
+.saved-entry-fields dt {
+  color: var(--muted);
+}
+
+.saved-toolbar-actions,
+.saved-entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.saved-filter {
+  display: grid;
+  gap: 6px;
+  min-width: min(260px, 100%);
+  font-weight: 700;
+}
+
+.saved-filter span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.saved-list {
+  display: grid;
+  gap: 16px;
+}
+
+.saved-entry-card {
+  display: grid;
+  gap: 18px;
+}
+
+.saved-entry-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.saved-entry-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.saved-entry-fields div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--field-bg);
+}
+
+.saved-entry-fields dt {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.saved-entry-fields dd {
+  overflow-wrap: anywhere;
+}
+
+.saved-entry-json {
+  margin: 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--preview-output-bg);
+  color: var(--preview-output-color);
+  overflow: auto;
+  max-height: 420px;
 }

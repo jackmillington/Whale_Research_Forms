@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saved Entries</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body data-app="saved-entries">
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">WF</span>
+        <span class="brand-copy">
+          <strong>Saved Entries</strong>
+          <span>Local browser storage</span>
+        </span>
+      </a>
+      <div class="topbar-actions">
+        <nav class="top-links">
+          <a href="index.html">All forms</a>
+        </nav>
+        <div class="theme-switcher" role="group" aria-label="Color theme">
+          <button type="button" class="theme-switcher-button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" class="theme-switcher-button" data-theme-option="dark" aria-pressed="true">Dark</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="saved-layout">
+      <section class="page-header">
+        <h1>Saved entries</h1>
+        <p>Entries saved in this browser are available offline until deleted or browser site data is cleared.</p>
+      </section>
+
+      <section class="saved-toolbar">
+        <div>
+          <h2>Exports</h2>
+          <p>Filter entries by form type or export everything saved in this browser.</p>
+        </div>
+        <div class="saved-toolbar-actions">
+          <label class="saved-filter">
+            <span>Form</span>
+            <select id="form-filter">
+              <option value="all">All forms</option>
+            </select>
+          </label>
+          <button type="button" class="button-primary" id="export-csv">Export CSV</button>
+          <button type="button" class="button-secondary" id="export-json">Export JSON backup</button>
+        </div>
+      </section>
+
+      <p class="saved-status" id="saved-status" role="status" aria-live="polite"></p>
+      <section class="saved-list" id="saved-list"></section>
+    </main>
+  </div>
+
+  <script type="module" src="assets/js/savedEntries.js"></script>
+</body>
+</html>

@@ -41,6 +41,7 @@ export function buildFormPageMarkup(formConfig, orderedForms) {
       <div class="topbar-actions">
         <nav class="top-links">
           <a href="index.html">All forms</a>
+          <a class="topbar-save-link" href="saved-entries.html">Saved entries</a>
         </nav>
         ${renderThemeSwitcher()}
       </div>
@@ -69,6 +70,7 @@ export function buildFormPageMarkup(formConfig, orderedForms) {
 
           <div class="form-actions">
             <button type="submit" class="button-primary">Validate and preview JSON</button>
+            <button type="button" class="button-secondary" data-save-local>Save locally</button>
             <button type="reset" class="button-secondary">Reset form</button>
           </div>
 

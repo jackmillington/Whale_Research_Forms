@@ -52,7 +52,9 @@
   .topbar,
   .section-head,
   .repeatable-card-head,
-  .section-heading--compact {
+  .section-heading--compact,
+  .saved-toolbar,
+  .saved-entry-main {
     flex-direction: column;
     align-items: stretch;
   }
@@ -91,7 +93,10 @@
   .hero-card,
   .forms-panel,
   .sidebar-card,
-  .preview-card {
+  .preview-card,
+  .saved-toolbar,
+  .saved-entry-card,
+  .empty-state {
     padding: 18px;
   }
 }
